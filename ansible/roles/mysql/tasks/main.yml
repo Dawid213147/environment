@@ -1,0 +1,78 @@
+---
+- name: install python mysql bindings
+  apt: name=python-mysqldb state=installed
+  become: yes
+  become_method: sudo
+
+- name: ensure MySQL is installed
+  action: apt pkg={{ item }} state=latest
+  with_items:
+      - mysql-client
+      - mysql-server
+  notify : restart mysql
+
+- name: service Mysql is started
+  service: name=mysql state=started enabled=yes
+
+- name: set our MySQL config my.cnf
+  action: template src='mysqld-ansible.cnf.j2' dest='/etc/mysql/conf.d/mysqld-ansible.cnf'
+  notify: restart mysql
+
+- name: copy .my.cnf file with root password credentials
+  template: src=my.cnf.j2 dest=/root/.my.cnf owner=root mode=0600
+
+- name: create root MySQL users
+  mysql_user: name={{ mysql.mysql_root_user }} password={{ mysql.mysql_root_pass }} host={{ item }} state=present priv="*.*:ALL,GRANT"
+  with_items:
+    - "%"
+    - "{{ ansible_default_ipv4.address }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+  notify: restart mysql
+
+- name: create MySQL DB for Data Provider
+  mysql_db: name={{ mysql.mysql_db }} encoding=utf8 state=present
+  notify: restart mysql
+
+- name: create MySQL DB for IAM
+  mysql_db: name={{ mysql.mysql_db_iam }} encoding=utf8 state=present
+  notify: restart mysql
+
+- name: create MySQL DB for ASSETS
+  mysql_db: name={{ mysql.mysql_db_asset }} encoding=utf8 state=present
+  notify: restart mysql
+
+- name: create application MySQL database users
+  mysql_user: name={{ mysql.mysql_user }} password={{ mysql.mysql_pass }} priv={{ mysql.mysql_db }}.*:ALL host='{{ item }}' state=present
+  with_items:
+    - "%"
+    - "{{ ansible_default_ipv4.address }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+  notify: restart mysql
+
+- name: create application MySQL database users
+  mysql_user: name={{ mysql.mysql_user_iam }} password={{ mysql.mysql_pass_iam }} priv={{ mysql.mysql_db_iam }}.*:ALL host='{{ item }}' state=present
+  with_items:
+    - "%"
+    - "{{ ansible_default_ipv4.address }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+  notify: restart mysql
+
+- name: create application MySQL database users
+  mysql_user: name={{ mysql.mysql_user_asset }} password={{ mysql.mysql_pass_asset }} priv={{ mysql.mysql_db_asset }}.*:ALL host='{{ item }}' state=present
+  with_items:
+    - "%"
+    - "{{ ansible_default_ipv4.address }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+  notify: restart mysql
+
+- name: remove default test MySQL DB
+  mysql_db: name=test state=absent
+

@@ -1,0 +1,15 @@
+---
+- name: Install xDebug
+  sudo: yes
+  apt: pkg=php7.1-xdebug state=latest
+
+- name: copy xdebug.ini
+  template: src=xdebug.ini.j2 dest=/etc/php/7.1/fpm/conf.d/20-xdebug.ini
+
+- name: PHP | restart nginx
+  raw: service nginx restart
+  sudo: true
+
+- name: PHP | restart fpm
+  raw: service php7.1-fpm restart
+  sudo: true

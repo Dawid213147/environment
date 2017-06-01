@@ -1,0 +1,43 @@
+---
+application_name: symfony
+inventory_hostname: symfony
+
+server:
+    install: '1'
+    packages: [htop, git, vim]
+    timezone: UTC
+    locale: pl_PL.UTF-8
+vagrant_local:
+    install: '1'
+    vm: { base_box: xenial64, hostname: evolution, ip: 192.168.56.133, memory: '2048', sharedfolder: '/var/www', useVagrantCloud: '1', syncType: nfs }
+apache:
+    install: '1'
+vhosts_symfony:
+    [
+        { name: 'symfony.app', rootFolder: '/var/www/app/web'},
+    ]
+mysql:
+    mysql_root_user: root
+    mysql_root_pass: root
+    mysql_user: symfony
+    mysql_pass: symfony
+    mysql_db: symfony
+    mysql_bind_address: 0.0.0.0  # Allows all connections, for Production it should be 127.0.0.1
+    mysql_key_buffer: 64M
+
+
+xdebug:
+    install: '1'
+composer:
+    install: '1'
+
+
+# php.ini settings
+php_memory_limit: 512M
+php_max_execution_time: 60
+php_post_max_size: 100M
+php_upload_max_filesize: 100M
+php_display_errors: On
+php_display_startup_errors: On
+php_html_errors: On
+php_date_timezone: Europe/Warsaw
