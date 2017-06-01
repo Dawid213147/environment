@@ -25,7 +25,7 @@ end
 Vagrant.configure("2") do |config|
 
     config.vm.provider :virtualbox do |v|
-        v.name = "4human.srv"
+        v.name = "php.local"
         v.customize [
             "modifyvm", :id,
             "--name", "php.local",
